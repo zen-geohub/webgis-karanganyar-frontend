@@ -1,15 +1,17 @@
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
-import { Suspense, useEffect, useState } from "react";
+import { Button, Modal } from "react-bootstrap";
+import { BsArrowsAngleContract } from "react-icons/bs";
 import NavbarComponent from "../components/NavbarComponent";
-import { Button, Card, Modal } from "react-bootstrap";
-import DonutCluster from "../components/DonutCluster";
-import BarChart from "../components/BarChart";
-import PieChart from "../components/PieChart";
-import { BsArrowsAngleContract, BsArrowsAngleExpand, } from "react-icons/bs";
+import DonutCluster from "../components/DonutCluster/DonutCluster";
+import BarChart from "../components/Legend/BarChart";
+import GradientLegend from "../components/Legend/GradientLegend";
+import PriorityLegend from "../components/Legend/PriorityLegend";
+import CompletenessLegend from "../components/Legend/CompletenessLegend";
+import { accuracyLegend, priorityLegend } from "../components/DonutCluster/createLegend";
 
 function Dashboard() {
-  const [showPie, setShowPie] = useState(false);
   const [showBar, setShowBar] = useState(false);
 
   function Border() {
@@ -29,50 +31,27 @@ function Dashboard() {
       <div id="wrapper" className="vh-100 vw-100 d-flex">
         <NavbarComponent active={"/dashboard"} />
         <div className="overflow-auto w-100 p-1">
-          <Suspense fallback={<div>Loading...</div>}>
             <MapContainer
-              center={[-7.583469, 110.94525]}
+              center={[-7.581469, 110.94525]}
               zoom={12}
               maxZoom={20}
-              style={{ height: "70%", width: "100%", borderRadius: "4px" }}
+              style={{ height: "63%", width: "100%", borderRadius: "4px" }}
+              attributionControl={false}
+              zoomControl={false}
             >
               <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
               <DonutCluster />
               <Border />
             </MapContainer>
-          </Suspense>
           <div className="d-flex gap-2 mt-2">
-            <Card>
-              <Card.Body className="d-flex justify-content-center align-items-center flex-column ">
-                <h1>
-                  <b>1162</b>
-                </h1>
-                <p className="mb-0 text-center small">Total Aspirations</p>
-              </Card.Body>
-            </Card>
-
-            <Card style={{ width: "50%", position: "relative"}}>
-              <Button onClick={() => setShowBar(!showBar)} variant="ligth" size="xs" className="position-absolute top-0 end-0"><BsArrowsAngleExpand/></Button>
-              <Card.Body className="p-1">
-                <BarChart maintainAspectRatio={false}/>
-              </Card.Body>
-            </Card>
-
-            <Card style={{ width: "50%", position: "relative" }}>
-              <Button onClick={() => setShowPie(!showPie)} variant="ligth" size="xs" className="position-absolute top-0 end-0"><BsArrowsAngleExpand/></Button>
-              <Card.Body className="p-1">
-                <PieChart maintainAspectRatio={false} legendAlign={"end"}/>
-              </Card.Body>
-            </Card>
+            <CompletenessLegend value={showBar} setValue={setShowBar} />
+            <GradientLegend cardWidth={"30%"} cardSubtitle={"Aspirations Accuracy"} gradientWidth={"50%"} legendType={"accuracy"} legendData={accuracyLegend} />
+            <GradientLegend cardWidth={"30%"} cardSubtitle={"Aspirations Priority"} gradientWidth={"50%"} legendType={"priority"} legendData={priorityLegend} />
+            <PriorityLegend />
           </div>
         </div>
       </div>
-      <Modal show={showPie} onHide={() => setShowPie(!showPie)} centered size="lg">
-        <Modal.Body>
-          <Button onClick={() => setShowPie(!showPie)} variant="ligth" size="xs" className="position-absolute top-0 end-0"><BsArrowsAngleContract/></Button>
-          <PieChart maintainAspectRatio={true} legendPosition={"top"}/>
-        </Modal.Body>
-      </Modal>
+
       <Modal show={showBar} onHide={() => setShowBar(!showBar)} centered size="lg">
         <Modal.Body>
           <Button onClick={() => setShowBar(!showBar)} variant="ligth" size="xs" className="position-absolute top-0 end-0"><BsArrowsAngleContract/></Button>
