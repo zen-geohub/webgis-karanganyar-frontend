@@ -1,7 +1,7 @@
 import "leaflet.markercluster/dist/leaflet.markercluster.js";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "../../utils/Leaflet.DonutCluster.js";
-import "../../utils/Leaflet.DonutCluster.css";
+// import "../../utils/Leaflet.DonutCluster.css";
 import "beautifymarker/leaflet-beautify-marker-icon.js";
 import "beautifymarker/leaflet-beautify-marker-icon.css";
 import "@fortawesome/fontawesome-free/css/all.css"
