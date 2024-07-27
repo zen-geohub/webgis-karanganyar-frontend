@@ -2,6 +2,8 @@ import { Navbar, Nav, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { BsFillHouseFill, BsFillGridFill, BsFileEarmarkFill } from "react-icons/bs";
 
+/* The `NavbarComponent` function is a React functional component that returns a Navbar component from
+the react-bootstrap library. It takes a prop `active` as an argument. */
 function NavbarComponent({ active }) {
   return (
     <Navbar

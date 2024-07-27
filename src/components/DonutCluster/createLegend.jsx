@@ -27,6 +27,13 @@ const countLegend = {
 }
 
 
+/**
+ * The function `legendComplete` creates a legend control for a map with information on data count,
+ * completeness, accuracy, and priority levels.
+ * @returns The `legendComplete` function is returning a Leaflet control object that represents a
+ * legend with information about data count, completeness, accuracy, and priority. The legend is
+ * designed with HTML elements and styles to display the information in a visually appealing way.
+ */
 function legendComplete() {
   const legend = L.control({ position: 'bottomleft' });
   legend.onAdd = function () {
@@ -106,6 +113,14 @@ function legendComplete() {
   return legend;
 }
 
+/**
+ * The function `legendMarker` creates a legend for a map marker based on a specified property, value,
+ * and name.
+ * @returns The function `legendMarker` is returning a Leaflet control object that displays a legend
+ * with a marker representing a specific property and value. The legend is positioned at the bottom
+ * right of the map and includes the specified legend name along with a colored marker based on the
+ * provided property and value.
+ */
 function legendMarker(markerProperty, markerValue, legendName) {
   const legend = L.control({ position: 'bottomright' });
   legend.onAdd = function () {

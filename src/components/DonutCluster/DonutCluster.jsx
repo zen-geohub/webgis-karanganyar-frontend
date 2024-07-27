@@ -12,107 +12,107 @@ import { contextData } from "../../contexts/DataContext.jsx";
 import { getColor, createFeatureNonPoint, createMarker } from "./createData.js";
 import { legendComplete, legendMarker } from "./createLegend.jsx";
 
+/**
+ * The function `customStyle` calculates various styling properties based on the features provided,
+ * such as size, fill color, star fill percentage, and border style.
+ * @returns The function `customStyle` returns an object with the following properties:
+ * - `size`: a number representing the size of a feature
+ * - `starFillPercentage`: a string containing SVG `<stop>` elements for filling stars based on a
+ * percentage
+ * - `fillOpacity`: a number representing the opacity of the fill color (default is 1)
+ * - `borderStyle`: a string representing the border style
+ */
+function customStyle(feature) {
+  let size, starFillPercentage, fillOpacity, fill;
+  const countFeature = feature.length;
+
+  if (countFeature <= 10) {
+    size = 30;
+  } else if (countFeature <= 100) {
+    size = 40;
+  } else if (countFeature <= 200) {
+    size = 60;
+  } else if (countFeature <= 500) {
+    size = 70;
+  } else {
+    size = 80;
+  }
+
+  const incomplete = feature.find(item => item.options["completeness"] === "Tidak Lengkap")
+
+  /* Calculating the average accuracy value based on different accuracy levels
+  (10, 20, 30, 40) of features and then determining the fill color based on the average accuracy
+  value. */
+  const accuracuValue = {
+    score25: (feature.filter(item => item.options["accuracy"] === 10).length * 25),
+    score50: (feature.filter(item => item.options["accuracy"] === 20).length * 50),
+    score50: (feature.filter(item => item.options["accuracy"] === 30).length * 50),
+    score50: (feature.filter(item => item.options["accuracy"] === 40).length * 100),
+  }
+  const accuracyAverage = Object.values(accuracuValue).reduce((accumulator, currentValue) => (accumulator + currentValue), 0)/countFeature;
+
+  if (accuracyAverage >= 0 && accuracyAverage <= 25) {
+    fill = getColor("Akurasi", "Inaccurate")
+  } else if (accuracyAverage > 25 && accuracyAverage <= 75) {
+    fill = getColor("Akurasi", "Less accurate")
+  } else if (accuracyAverage > 75 && accuracyAverage <= 100) {
+    fill = getColor("Akurasi", "Accurate")
+  }
+
+  /* Calculating the star fill percentage based on the priority values of features. */
+  const countAveragePriority = {
+    priority1: (feature.filter(item => item.options["priority"] === "Wajib Dasar").length * 100),
+    priority2: (feature.filter(item => item.options["priority"] === "Wajib Tidak Dasar").length * 80),
+    priority3: (feature.filter(item => item.options["priority"] === "Tidak Wajib dan Tidak Dasar").length * 60),
+    // priority4: (feature.filter(item => item.options["priority"] === "Lengkap dan Tidak Akurat").length * 40),
+    // priority5: (feature.filter(item => item.options["priority"] === "Tidak Lengkap").length * 20),
+  }
+  const starPercentage = Object.values(countAveragePriority).reduce((accumulator, currentValue) => (accumulator + currentValue), 0)/countFeature;
+
+  if (starPercentage <= 33) {
+    starFillPercentage = `
+      <stop offset=${starPercentage}% stop-color="#fff7bc"/>
+      <stop offset=${starPercentage}% stop-color="grey"/>
+    `
+  } else if (starPercentage <= 66) {
+    starFillPercentage = `
+      <stop offset=0% stop-color="#fff7bc"/>
+      <stop offset=${starPercentage}% stop-color="#fec44f"/>
+      <stop offset=${starPercentage}% stop-color="grey"/>
+    `
+  } else {
+    starFillPercentage = `
+      <stop offset=0% stop-color="#fff7bc"/>
+      <stop offset=50% stop-color="#fec44f"/>
+      <stop offset=${starPercentage}% stop-color="#d95f0e"/>
+      <stop offset=${starPercentage}% stop-color="grey"/>
+    `
+  }
+
+  /* The `return` statement in the `customStyle` function is creating and returning an object with
+  several properties based on the calculations and conditions within the function. */
+  return {
+    size: size,
+    starFillPercentage: starFillPercentage,
+    fillOpacity: fillOpacity || 1,
+    borderStyle: incomplete ? "dashed" : "solid",
+    fill: fill,
+    borderColor: "black",
+    borderWidth: 2,
+  }
+}
+
+/**
+ * The `DonutCluster` function in JavaScript React sets up a map with layers for displaying
+ * completeness and duplicate data, along with legends and markers.
+ * @returns The `DonutCluster` function is returning `null`.
+ */
 function DonutCluster() {
   const data = useContext(contextData);
   const map = useMap();
   
   const duplicatedData = L.layerGroup();
   const filteredCompleteness = L.layerGroup();
-
-  function customStyle(feature) {
-    let size, starFillPercentage, fillOpacity, fill, borderStyle;
-    
-    // const countAccuracyTotal = feature.length * 40;
-    // const countAverageAccuracy = {
-    //   score10: (feature.filter(item => item.options["accuracy"] === 10).length * 10) / countAccuracyTotal,
-    //   score20: (feature.filter(item => item.options["accuracy"] === 20).length * 20) / countAccuracyTotal,
-    //   score30: (feature.filter(item => item.options["accuracy"] === 30).length * 30) / countAccuracyTotal,
-    //   score40: (feature.filter(item => item.options["accuracy"] === 40).length * 40) / countAccuracyTotal,
-    //   // total: feature.length,
-    // }
-
-    const countAccuracyTotal = feature.length
-    const countAverageAccuracy = {
-      score25: (feature.filter(item => item.options["accuracy"] === 10).length * 25),
-      score50: (feature.filter(item => item.options["accuracy"] === 20).length * 50),
-      score50: (feature.filter(item => item.options["accuracy"] === 30).length * 50),
-      score50: (feature.filter(item => item.options["accuracy"] === 40).length * 100),
-    }
-    // console.log(countAverageAccuracy)
-    const accuracyReducer = Object.values(countAverageAccuracy).reduce((a, b) => (a + b), 0)/countAccuracyTotal;
-    // console.log(accuracyReducer);
-
-    if (accuracyReducer >= 0 && accuracyReducer <= 33) {
-      fill = getColor("Akurasi", "Inaccurate")
-    } else if (accuracyReducer > 33 && accuracyReducer <= 66) {
-      fill = getColor("Akurasi", "Less accurate")
-    } else if (accuracyReducer > 66 && accuracyReducer <= 100) {
-      fill = getColor("Akurasi", "Accurate")
-    }
-
-    const countPriorityTotal = feature.length;
-    const countAveragePriority = {
-      priority1: (feature.filter(item => item.options["priority"] === "Wajib Dasar").length * 100),
-      priority2: (feature.filter(item => item.options["priority"] === "Wajib Tidak Dasar").length * 80),
-      priority3: (feature.filter(item => item.options["priority"] === "Tidak Wajib dan Tidak Dasar").length * 60),
-      // priority4: (feature.filter(item => item.options["priority"] === "Lengkap dan Tidak Akurat").length * 40),
-      // priority5: (feature.filter(item => item.options["priority"] === "Tidak Lengkap").length * 20),
-      // total: feature.length,
-    }
-
-    let starPercentage = Object.values(countAveragePriority).reduce((a, b) => (a + b), 0)/countAccuracyTotal;
-
-    if (starPercentage <= 33) {
-      starFillPercentage = `
-        <stop offset=${starPercentage}% stop-color="#fff7bc"/>
-        <stop offset=${starPercentage}% stop-color="grey"/>
-      `
-    } else if (starPercentage <= 66) {
-      starFillPercentage = `
-        <stop offset=0% stop-color="#fff7bc"/>
-        <stop offset=${starPercentage}% stop-color="#fec44f"/>
-        <stop offset=${starPercentage}% stop-color="grey"/>
-      `
-    } else {
-      starFillPercentage = `
-        <stop offset=0% stop-color="#fff7bc"/>
-        <stop offset=50% stop-color="#fec44f"/>
-        <stop offset=${starPercentage}% stop-color="#d95f0e"/>
-        <stop offset=${starPercentage}% stop-color="grey"/>
-      `
-    }
-    // console.log(starFillPercentage);
-    // console.log(countAveragePriority);
-    // console.log(countTotal);
-    // console.log(Object.values(countAveragePriority).reduce((a, b) => a + b, 0));
-
-    // console.log(countPercentage);
-
-    const incomplete = feature.find(item => item.options["completeness"] === "Tidak Lengkap")
-    borderStyle = incomplete ? "dashed" : "solid";
-
-    if (feature.length <= 10) {
-      size = 30;
-    } else if (feature.length <= 100) {
-      size = 40;
-    } else if (feature.length <= 200) {
-      size = 60;
-    } else if (feature.length <= 500) {
-      size = 70;
-    } else {
-      size = 80;
-    }
-
-    return {
-      size: size,
-      starFillPercentage: starFillPercentage,
-      fillOpacity: fillOpacity || 1,
-      borderStyle: borderStyle,
-      fill: fill,
-      borderColor: "black",
-      borderWidth: 2,
-    }
-  }
 
   const clusterCompleteness = L.DonutCluster(
     { chunkedLoading: true },
@@ -139,6 +139,8 @@ function DonutCluster() {
     });
   }
   
+  /* The `useEffect` hook in the provided is responsible for setting up and managing side
+  effects in the `DonutCluster` component. */
   useEffect(() => {
     L.tileLayer.wms(`${import.meta.env.VITE_GEOSERVER}/wms`, {
       layers: 'ppids:jalan_poi',
